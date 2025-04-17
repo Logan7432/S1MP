@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>disable</Nullable>
+		<RootNamespace>SteamGameServerMod</RootNamespace>
+		<LangVersion>default</LangVersion>
+		<IsPackable>false</IsPackable>
+		<AssemblyVersion>1.0.0.0</AssemblyVersion>
+		<FileVersion>1.0.0.0</FileVersion>
+		<NeutralLanguage>en-US</NeutralLanguage>
+		<AssemblyName>SteamGameServerMod</AssemblyName>
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<S1Dir>C:\Program Files (x86)\Steam\steamapps\common\Schedule I</S1Dir>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Reference Include="$(S1Dir)\Schedule I_Data\Managed\*.dll" Exclude="$(S1Dir)\Schedule I_Data\Managed\System*.dll;$(S1Dir)\Schedule I_Data\Managed\mscorlib.dll;$(S1Dir)\Schedule I_Data\Managed\netstandard.dll" Private="false" Publicize="True" />
+		<Reference Include="$(S1Dir)\MelonLoader\net35\MelonLoader.dll" />
+		<Reference Include="$(S1Dir)\MelonLoader\net35\0Harmony.dll" />
+	</ItemGroup>
+
+	<PropertyGroup>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Include="Core.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Command="COPY &quot;$(TargetPath)&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Schedule I\Mods&quot;" />
+	</Target>
+</Project>
