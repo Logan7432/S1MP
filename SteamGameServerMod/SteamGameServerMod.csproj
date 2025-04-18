@@ -66,6 +66,10 @@
 		<CopyToPluginFolder Include="$(TargetDir)\$(ProjectName).dll" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <EmbeddedResource Include="Assets\Player_0.zip" />
+	</ItemGroup>
+
 	<Target Name="CopyToPluginFolder" AfterTargets="PostBuildEvent" Condition="'$(CI)' == ''" Outputs="$(PluginRoot)">
 		<PropertyGroup>
 			<Destination>$(PluginRoot)</Destination>

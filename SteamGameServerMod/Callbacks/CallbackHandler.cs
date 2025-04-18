@@ -7,39 +7,50 @@ namespace SteamGameServerMod.Callbacks
 {
     internal class CallbackHandler(GameServerSettings settings)
     {
-        // Server callbacks
-        private Callback<SteamServersConnected_t> _serverConnectedCallback;
-        private Callback<SteamServerConnectFailure_t> _serverConnectFailureCallback;
-        private Callback<SteamServersDisconnected_t> _serverDisconnectedCallback;
-
-        // Client callbacks
-        private Callback<P2PSessionRequest_t> _p2pSessionRequestCallback;
-        private Callback<GSClientApprove_t> _clientApproveCallback;
-        private Callback<GSClientDeny_t> _clientDenyCallback;
-        private Callback<GSClientKick_t> _clientKickCallback;
-
-        // Debug callbacks for testing
-        private Callback<ValidateAuthTicketResponse_t> _validateAuthCallback;
-        private Callback<P2PSessionConnectFail_t> _p2pConnectFailCallback;
-        private Callback<GameServerChangeRequested_t> _gameServerChangeCallback;
+        public static bool LobbyGameEntered;
 
         public void RegisterCallbacks()
         {
             // Register server callbacks
-            _serverConnectedCallback = Callback<SteamServersConnected_t>.Create(OnSteamServersConnected);
-            _serverConnectFailureCallback = Callback<SteamServerConnectFailure_t>.Create(OnSteamServerConnectFailure);
-            _serverDisconnectedCallback = Callback<SteamServersDisconnected_t>.Create(OnSteamServersDisconnected);
+            Callback<SteamServersConnected_t>.Create(OnSteamServersConnected);
+            Callback<SteamServerConnectFailure_t>.Create(OnSteamServerConnectFailure);
+            Callback<SteamServersDisconnected_t>.Create(OnSteamServersDisconnected);
 
             // Register client callbacks
-            _p2pSessionRequestCallback = Callback<P2PSessionRequest_t>.Create(OnP2PSessionRequest);
-            _clientApproveCallback = Callback<GSClientApprove_t>.Create(OnClientApproved);
-            _clientDenyCallback = Callback<GSClientDeny_t>.Create(OnClientDenied);
-            _clientKickCallback = Callback<GSClientKick_t>.Create(OnClientKicked);
+            Callback<P2PSessionRequest_t>.Create(OnP2PSessionRequest);
+            Callback<GSClientApprove_t>.Create(OnClientApproved);
+            Callback<GSClientDeny_t>.Create(OnClientDenied);
+            Callback<GSClientKick_t>.Create(OnClientKicked);
 
             // Register debug callbacks
-            _validateAuthCallback = Callback<ValidateAuthTicketResponse_t>.Create(OnValidateAuthTicket);
-            _p2pConnectFailCallback = Callback<P2PSessionConnectFail_t>.Create(OnP2PConnectFail);
-            _gameServerChangeCallback = Callback<GameServerChangeRequested_t>.Create(OnGameServerChangeRequested);
+            Callback<ValidateAuthTicketResponse_t>.Create(OnValidateAuthTicket);
+            Callback<P2PSessionConnectFail_t>.Create(OnP2PConnectFail);
+            Callback<GameServerChangeRequested_t>.Create(OnGameServerChangeRequested);
+
+            Callback<LobbyEnter_t>.Create(lobbyEntered =>
+            {
+                Log.LogInfo($"Lobby entered: LobbyID: {lobbyEntered.m_ulSteamIDLobby}");
+            });
+
+            Callback<LobbyCreated_t>.Create(lobbyCreated =>
+            {
+                Log.LogInfo($"Lobby created: {lobbyCreated.m_eResult} {lobbyCreated.m_ulSteamIDLobby}");
+
+                SteamMatchmaking.SetLobbyData((CSteamID)lobbyCreated.m_ulSteamIDLobby, "version", "0.3.4f4 Alternate");
+                SteamMatchmaking.SetLobbyData((CSteamID)lobbyCreated.m_ulSteamIDLobby, "ready", "true");
+                SteamMatchmaking.SetLobbyData((CSteamID)lobbyCreated.m_ulSteamIDLobby, "host_loading", "false");
+
+                // Communicate to Steam master server that this server is active and should be advertised on server browser
+                SteamGameServer.SetAdvertiseServerActive(true);
+
+                SteamMatchmaking.SetLobbyGameServer((CSteamID)lobbyCreated.m_ulSteamIDLobby, 0, settings.GamePort, (CSteamID)0ul);
+            });
+
+            Callback<LobbyGameCreated_t>.Create(_ =>
+            {
+                Log.LogInfo("Lobby game created");
+                LobbyGameEntered = true;
+            });
 
             Log.LogInfo("All Steam callbacks registered successfully");
         }

@@ -15,6 +15,9 @@ namespace SteamGameServerMod.Managers
 
         public IEnumerator Initialize()
         {
+            // Register callbacks
+            _callbackHandler.RegisterCallbacks();
+
             Log.LogInfo("Starting Steam GameServer initialization...");
 
             if (!SteamAPI.IsSteamRunning())
@@ -45,9 +48,6 @@ namespace SteamGameServerMod.Managers
                 yield break;
             }
 
-            // Register callbacks
-            _callbackHandler.RegisterCallbacks();
-
             // Apply game server configuration
             Log.LogInfo("Configuring server settings...");
             SteamGameServer.SetModDir(settings.GameDescription);
@@ -60,20 +60,14 @@ namespace SteamGameServerMod.Managers
             SteamGameServer.SetMapName(settings.MapName);
 
             Log.LogInfo("Logging on to Steam...");
-            SteamGameServer.LogOn("27C21D37398C7156D2B906BD43620DFA");
-
-            // Communicate to Steam master server that this server is active and should be advertised on server browser
-            SteamGameServer.SetAdvertiseServerActive(true);
+            SteamGameServer.LogOn(settings.Token);
 
             yield return new WaitUntil(SteamGameServer.BLoggedOn);
-
-            // InstanceFinder.ServerManager.StartConnection();
 
             _serverInitialized = true;
             Log.LogInfo("Steam GameServer initialization completed.");
             Log.LogInfo($"Steam initialized, Steam running: {SteamAPI.IsSteamRunning()}, Server logged on: {SteamGameServer.BLoggedOn()}");
 
-            // Create the lobby?
             SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypePublic, settings.MaxPlayers);
             Log.LogInfo("SteamMatching::CreateLobby called");
         }
@@ -83,6 +77,7 @@ namespace SteamGameServerMod.Managers
             if (_serverInitialized)
             {
                 GameServer.RunCallbacks();
+                SteamAPI.RunCallbacks();
             }
         }
 
