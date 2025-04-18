@@ -10,8 +10,8 @@ namespace SteamGameServerMod.Managers
 {
     internal class GameServerManager(GameServerSettings settings)
     {
-        private readonly CallbackHandler _callbackHandler = new(settings);
-        private bool _serverInitialized;
+        readonly CallbackHandler _callbackHandler = new(settings);
+        bool _serverInitialized;
 
         public IEnumerator Initialize()
         {

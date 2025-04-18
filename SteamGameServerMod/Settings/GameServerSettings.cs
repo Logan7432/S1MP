@@ -6,6 +6,7 @@ namespace SteamGameServerMod.Settings
     {
         public string ServerName { get; set; } = "[S1] OneM Testing";
         public string GameDescription { get; set; }  = "Schedule 1";
+        public string GameVersion { get; set; } = "0.3.4f8 Alternate";
         public string MapName { get; set; }  = "default_map";
         public EServerMode ServerMode { get; set; }  = EServerMode.eServerModeNoAuthentication;
         public int MaxPlayers { get; set; }  = 16;

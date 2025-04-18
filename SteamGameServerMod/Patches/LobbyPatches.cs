@@ -9,5 +9,5 @@ public class LobbyPatches
     [HarmonyPatch(nameof(Lobby.OnLobbyCreated))]
     [HarmonyPatch(nameof(Lobby.OnLobbyEntered))]
     [HarmonyPrefix]
-    public static bool OnLobbyCreated_Prefix(Lobby __instance) => false;
+    public static bool OnLobbyCreated_Prefix(Lobby __instance) => !Core.IsHost;
 }

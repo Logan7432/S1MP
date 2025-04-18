@@ -10,7 +10,7 @@ namespace SteamGameServerMod.Managers
 {
     internal class SettingsManager
     {
-        private const string SettingsFileName = "SteamGameServerSettings.json";
+        const string SettingsFileName = "SteamGameServerSettings.json";
 
         public GameServerSettings LoadSettings()
         {
@@ -44,7 +44,7 @@ namespace SteamGameServerMod.Managers
             }
         }
 
-        private void SaveSettings(GameServerSettings settings)
+        void SaveSettings(GameServerSettings settings)
         {
             try
             {
@@ -64,7 +64,7 @@ namespace SteamGameServerMod.Managers
             }
         }
 
-        private static GameServerSettings CreateDefaultSettings()
+        static GameServerSettings CreateDefaultSettings()
         {
             return new()
             {

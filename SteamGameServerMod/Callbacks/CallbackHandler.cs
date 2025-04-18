@@ -2,6 +2,7 @@
 using SteamGameServerMod.Settings;
 using SteamGameServerMod.Util;
 using Steamworks;
+using UnityEngine;
 
 namespace SteamGameServerMod.Callbacks
 {
@@ -27,18 +28,17 @@ namespace SteamGameServerMod.Callbacks
             Callback<P2PSessionConnectFail_t>.Create(OnP2PConnectFail);
             Callback<GameServerChangeRequested_t>.Create(OnGameServerChangeRequested);
 
-            Callback<LobbyEnter_t>.Create(lobbyEntered =>
+            Callback<LobbyChatUpdate_t>.Create(lobbyChatUpdate =>
             {
-                Log.LogInfo($"Lobby entered: LobbyID: {lobbyEntered.m_ulSteamIDLobby}");
+                Log.LogInfo($"LobbyChatUpdate: LobbyID: {lobbyChatUpdate.m_ulSteamIDLobby} {lobbyChatUpdate.m_ulSteamIDUserChanged} {(EChatMemberStateChange)lobbyChatUpdate.m_rgfChatMemberStateChange}");
             });
 
             Callback<LobbyCreated_t>.Create(lobbyCreated =>
             {
                 Log.LogInfo($"Lobby created: {lobbyCreated.m_eResult} {lobbyCreated.m_ulSteamIDLobby}");
 
-                SteamMatchmaking.SetLobbyData((CSteamID)lobbyCreated.m_ulSteamIDLobby, "version", "0.3.4f4 Alternate");
+                SteamMatchmaking.SetLobbyData((CSteamID)lobbyCreated.m_ulSteamIDLobby, "version", settings.GameVersion);
                 SteamMatchmaking.SetLobbyData((CSteamID)lobbyCreated.m_ulSteamIDLobby, "ready", "true");
-                SteamMatchmaking.SetLobbyData((CSteamID)lobbyCreated.m_ulSteamIDLobby, "host_loading", "false");
 
                 // Communicate to Steam master server that this server is active and should be advertised on server browser
                 SteamGameServer.SetAdvertiseServerActive(true);

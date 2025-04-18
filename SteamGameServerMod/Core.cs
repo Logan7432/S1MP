@@ -10,7 +10,6 @@ using System.Collections;
 using FishNet;
 using FishNet.Component.Scenes;
 using FishNet.Transporting.Multipass;
-using FishNet.Transporting.Tugboat;
 using ScheduleOne.Audio;
 using ScheduleOne.Persistence;
 using ScheduleOne.PlayerScripts;
@@ -37,45 +36,53 @@ namespace SteamGameServerMod
     public class Core : BaseUnityPlugin
 #endif
     {
-        private GameServerSettings _settings;
-        private GameServerManager _gameServer;
+        public static bool IsHost;
+
+        GameServerSettings _settings;
+        GameServerManager _gameServer;
 
 #if USEMELONLOADER
         public override void OnInitializeMelon()
 #elif USEBEPINEX
-        private void Awake()
+        void Awake()
 #endif
         {
 #if USEBEPINEX
             Log.Logger = Logger;
 #endif
 
-            Log.LogInfo("Steam GameServer Mod Initializing...");
-
-            if (!SteamAPI.Init())
+            var startArguments = Environment.GetCommandLineArgs()
+                .ToList();
+            IsHost = startArguments.Contains("--host");
+            if (IsHost)
             {
-                Log.LogFatal("Failed to initialize SteamAPI!!!!!!");
-                return;
-            }
+                Log.LogInfo("Steam GameServer Mod Initializing...");
 
-            // Initialize settings
-            _settings = new SettingsManager()
-                .LoadSettings();
+                if (!SteamAPI.Init())
+                {
+                    Log.LogFatal("Failed to initialize SteamAPI!!!!!!");
+                    return;
+                }
 
-            // Initialize game server
-            _gameServer = new(_settings);
+                // Initialize settings
+                _settings = new SettingsManager()
+                    .LoadSettings();
 
-            // Register exit handler
-            Application.quitting += OnApplicationQuitHandler;
+                // Initialize game server
+                _gameServer = new(_settings);
 
-            // Start initialization process
+                // Register exit handler
+                Application.quitting += OnApplicationQuitHandler;
+
+                // Start initialization process
 #if USEMELONLOADER
-            MelonCoroutines.Start(InitializeServer());
-            MelonCoroutines.Start(InitializeServerSpawning(_settings));
+                MelonCoroutines.Start(InitializeServer());
+                MelonCoroutines.Start(InitializeServerSpawning(_settings));
 #elif USEBEPINEX
-            StartCoroutine(InitializeServer());
-            StartCoroutine(InitializeServerSpawning(_settings));
+                StartCoroutine(InitializeServer());
+                StartCoroutine(InitializeServerSpawning(_settings));
 #endif
+            }
 
 #if USEBEPINEX
             new Harmony($"com.S1MP.{MyPluginInfo.PLUGIN_GUID}")
@@ -83,7 +90,7 @@ namespace SteamGameServerMod
 #endif
         }
 
-        private IEnumerator InitializeServer()
+        IEnumerator InitializeServer()
         {
             yield return _gameServer.Initialize();
         }
@@ -91,13 +98,13 @@ namespace SteamGameServerMod
 #if USEMELONLOADER
         public override void OnUpdate()
 #elif USEBEPINEX
-        private void Update()
+        void Update()
 #endif
         {
             _gameServer?.Update();
         }
 
-        private void OnApplicationQuitHandler()
+        void OnApplicationQuitHandler()
         {
             ShutdownServer();
         }
@@ -105,13 +112,13 @@ namespace SteamGameServerMod
 #if USEMELONLOADER
         public override void OnApplicationQuit()
 #elif USEBEPINEX
-        private void OnApplicationQuit()
+        void OnApplicationQuit()
 #endif
         {
             ShutdownServer();
         }
 
-        private void ShutdownServer()
+        void ShutdownServer()
         {
             _gameServer?.Shutdown();
         }
