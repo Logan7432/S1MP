@@ -24,7 +24,7 @@ namespace SteamGameServerMod
             LoggerInstance.Msg("Steam GameServer Mod Initializing...");
 
             // Initialize settings
-            _settings = new SettingsLoader(LoggerInstance).LoadSettings();
+            _settings = new SettingsManager(LoggerInstance).LoadSettings();
 
             // Initialize game server
             _gameServer = new GameServerManager(LoggerInstance, _settings);

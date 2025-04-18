@@ -21,19 +21,6 @@
 		<Reference Include="$(S1Dir)\MelonLoader\net35\0Harmony.dll" />
 	</ItemGroup>
 
-	<PropertyGroup>
-		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-	</PropertyGroup>
-
-	<ItemGroup>
-		<Compile Include="Callbacks\CallbackHandler.cs" />
-		<Compile Include="Core.cs" />
-		<Compile Include="Managers\GameServerManager.cs" />
-		<Compile Include="Settings\GameServerSettings.cs" />
-		<Compile Include="Util\Utils.cs" />
-	</ItemGroup>
-
 	<ItemGroup>
 		<PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3">
 			<PrivateAssets>all</PrivateAssets>
