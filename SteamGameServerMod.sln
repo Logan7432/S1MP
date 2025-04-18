@@ -7,14 +7,20 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SteamGameServerMod", "Steam
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
+		ReleaseMelon|Any CPU = ReleaseMelon|Any CPU
+		DebugBepInEx|Any CPU = DebugBepInEx|Any CPU
+		DebugMelon|Any CPU = DebugMelon|Any CPU
+		ReleaseBepInEx|Any CPU = ReleaseBepInEx|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.ReleaseMelon|Any CPU.ActiveCfg = ReleaseMelon|Any CPU
+		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.ReleaseMelon|Any CPU.Build.0 = ReleaseMelon|Any CPU
+		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.DebugBepInEx|Any CPU.ActiveCfg = DebugBepInEx|Any CPU
+		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.DebugBepInEx|Any CPU.Build.0 = DebugBepInEx|Any CPU
+		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.DebugMelon|Any CPU.ActiveCfg = DebugMelon|Any CPU
+		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.DebugMelon|Any CPU.Build.0 = DebugMelon|Any CPU
+		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.ReleaseBepInEx|Any CPU.ActiveCfg = ReleaseBepInEx|Any CPU
+		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.ReleaseBepInEx|Any CPU.Build.0 = ReleaseBepInEx|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
