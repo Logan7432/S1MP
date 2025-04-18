@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using MelonLoader;
-using MelonLoader.Utils;
-using Newtonsoft.Json;
-using Steamworks;
+﻿using Steamworks;
 
 namespace SteamGameServerMod.Settings
 {

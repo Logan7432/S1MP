@@ -1,60 +1,47 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
-using MelonLoader;
+﻿using System.Collections;
 using SteamGameServerMod.Callbacks;
+using SteamGameServerMod.Logging;
 using SteamGameServerMod.Settings;
-using SteamGameServerMod.Util;
 using Steamworks;
 
 namespace SteamGameServerMod.Managers
 {
-    internal class GameServerManager
+    internal class GameServerManager(GameServerSettings settings)
     {
-        private readonly MelonLogger.Instance _logger;
-        private readonly GameServerSettings _settings;
-        private readonly CallbackHandler _callbackHandler;
-        private bool _serverInitialized = false;
-
-        public GameServerManager(MelonLogger.Instance logger, GameServerSettings settings)
-        {
-            _logger = logger;
-            _settings = settings;
-            _callbackHandler = new CallbackHandler(logger, settings);
-        }
+        private readonly CallbackHandler _callbackHandler = new(settings);
+        private bool _serverInitialized;
 
         public IEnumerator Initialize()
         {
-            _logger.Msg("Starting Steam GameServer initialization...");
+            Log.LogInfo("Starting Steam GameServer initialization...");
 
             if (!SteamAPI.IsSteamRunning())
             {
-                _logger.Error("Steam is not running. Cannot initialize GameServer.");
+                Log.LogError("Steam is not running. Cannot initialize GameServer.");
                 yield break;
             }
 
             try
             {
                 // Log Initial Configuration
-                _logger.Msg($"Initializing server with AppID: {_settings.AppID}");
-                _logger.Msg($"Game Port: {_settings.GamePort}, Query Port: {_settings.QueryPort}");
-                _logger.Msg($"Server Mode: {_settings.ServerMode}");
+                Log.LogInfo($"Initializing server with AppID: {settings.AppID}");
+                Log.LogInfo($"Game Port: {settings.GamePort}, Query Port: {settings.QueryPort}");
+                Log.LogInfo($"Server Mode: {settings.ServerMode}");
 
                 //UInt32 serverIp = Utils.IpToUInt32("192.168.178.70");
-                UInt32 serverIp = 0;
+                var serverIp = 0u;
 
-                bool success = GameServer.Init(
+                var success = GameServer.Init(
                     serverIp,
-                    _settings.QueryPort,
-                    _settings.GamePort,
-                    _settings.ServerMode,
-                    $"1.0.0"
+                    settings.QueryPort,
+                    settings.GamePort,
+                    settings.ServerMode,
+                    "1.0.0"
                 );
 
                 if (!success)
                 {
-                    _logger.Error("Failed to initialize Steam GameServer.");
+                    Log.LogError("Failed to initialize Steam GameServer.");
                     yield break;
                 }
 
@@ -62,30 +49,30 @@ namespace SteamGameServerMod.Managers
                 _callbackHandler.RegisterCallbacks();
 
                 // Apply game server configuration
-                _logger.Msg("Configuring server settings...");
-                SteamGameServer.SetModDir(_settings.GameDirectory);
-                SteamGameServer.SetProduct($"{_settings.AppID}");
-                SteamGameServer.SetGameDescription(_settings.GameDescription);
+                Log.LogInfo("Configuring server settings...");
+                SteamGameServer.SetModDir(settings.GameDirectory);
+                SteamGameServer.SetProduct($"{settings.AppID}");
+                SteamGameServer.SetGameDescription(settings.GameDescription);
                 SteamGameServer.SetDedicatedServer(true);
-                SteamGameServer.SetMaxPlayerCount(_settings.MaxPlayers);
-                SteamGameServer.SetPasswordProtected(_settings.PasswordProtected);
-                SteamGameServer.SetServerName(_settings.ServerName);
-                SteamGameServer.SetMapName(_settings.MapName);
+                SteamGameServer.SetMaxPlayerCount(settings.MaxPlayers);
+                SteamGameServer.SetPasswordProtected(settings.PasswordProtected);
+                SteamGameServer.SetServerName(settings.ServerName);
+                SteamGameServer.SetMapName(settings.MapName);
 
-                _logger.Msg("Logging on to Steam...");
+                Log.LogInfo("Logging on to Steam...");
                 SteamGameServer.LogOn("GAMESERVER_TOKEN");
 
                 // Communicate to Steam master server that this server is active and should be advertised on server browser
                 SteamGameServer.SetAdvertiseServerActive(true);
 
                 _serverInitialized = true;
-                _logger.Msg("Steam GameServer initialization completed.");
-                _logger.Msg($"Steam initialized: {success}, Steam running: {SteamAPI.IsSteamRunning()}, Server logged on: {SteamGameServer.BLoggedOn()}");
+                Log.LogInfo("Steam GameServer initialization completed.");
+                Log.LogInfo($"Steam initialized, Steam running: {SteamAPI.IsSteamRunning()}, Server logged on: {SteamGameServer.BLoggedOn()}");
             }
             catch (Exception ex)
             {
-                _logger.Error($"Exception during Steam GameServer initialization: {ex.Message}");
-                _logger.Error($"Stack trace: {ex.StackTrace}");
+                Log.LogError($"Exception during Steam GameServer initialization: {ex.Message}");
+                Log.LogError($"Stack trace: {ex.StackTrace}");
             }
         }
 
@@ -101,12 +88,12 @@ namespace SteamGameServerMod.Managers
         {
             if (_serverInitialized)
             {
-                _logger.Msg("Shutting down Steam GameServer...");
+                Log.LogInfo("Shutting down Steam GameServer...");
                 SteamGameServer.SetAdvertiseServerActive(false);
                 SteamGameServer.LogOff();
                 GameServer.Shutdown();
                 _serverInitialized = false;
-                _logger.Msg("Steam GameServer shutdown complete.");
+                Log.LogInfo("Steam GameServer shutdown complete.");
             }
         }
     }

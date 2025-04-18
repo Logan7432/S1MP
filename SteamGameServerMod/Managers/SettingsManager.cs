@@ -1,49 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿#if USEMELONLOADER
 using MelonLoader.Utils;
 using MelonLoader;
+#endif
 using Newtonsoft.Json;
+using SteamGameServerMod.Logging;
 using SteamGameServerMod.Settings;
 
 namespace SteamGameServerMod.Managers
 {
     internal class SettingsManager
     {
-        private readonly MelonLogger.Instance _logger;
         private const string SettingsFileName = "SteamGameServerSettings.json";
-
-        public SettingsManager(MelonLogger.Instance logger)
-        {
-            _logger = logger;
-        }
 
         public GameServerSettings LoadSettings()
         {
             try
             {
-                string settingsPath = Path.Combine(MelonEnvironment.UserDataDirectory, SettingsFileName);
-                _logger.Msg($"Attempting to load settings from: {settingsPath}");
+#if USEMELONLOADER
+                var settingsPath = Path.Combine(MelonEnvironment.UserDataDirectory, SettingsFileName);
+#elif USEBEPINEX
+                var settingsPath = Path.Combine("BepInEx", "config", SettingsFileName);
+#endif
+                Log.LogInfo($"Attempting to load settings from: {settingsPath}");
 
                 if (File.Exists(settingsPath))
                 {
-                    string json = File.ReadAllText(settingsPath);
+                    var json = File.ReadAllText(settingsPath);
                     var settings = JsonConvert.DeserializeObject<GameServerSettings>(json);
-                    _logger.Msg("Settings loaded successfully");
+                    Log.LogInfo("Settings loaded successfully");
                     return settings;
                 }
-                else
-                {
-                    _logger.Msg("Settings file not found, creating default settings");
-                    var defaultSettings = CreateDefaultSettings();
-                    SaveSettings(defaultSettings);
-                    return defaultSettings;
-                }
+
+                Log.LogInfo("Settings file not found, creating default settings");
+                var defaultSettings = CreateDefaultSettings();
+                SaveSettings(defaultSettings);
+                return defaultSettings;
             }
             catch (Exception ex)
             {
-                _logger.Error($"Error loading settings: {ex.Message}");
-                _logger.Msg("Using default settings");
+                Log.LogError($"Error loading settings: {ex.Message}");
+                Log.LogInfo("Using default settings");
                 return CreateDefaultSettings();
             }
         }
@@ -52,20 +48,25 @@ namespace SteamGameServerMod.Managers
         {
             try
             {
-                string settingsPath = Path.Combine(MelonEnvironment.UserDataDirectory, SettingsFileName);
-                string json = JsonConvert.SerializeObject(settings, Formatting.Indented);
+#if USEMELONLOADER
+                var settingsPath = Path.Combine(MelonEnvironment.UserDataDirectory, SettingsFileName);
+#elif USEBEPINEX
+                var settingsPath = Path.Combine("BepInEx", "config", SettingsFileName);
+#endif
+
+                var json = JsonConvert.SerializeObject(settings, Formatting.Indented);
                 File.WriteAllText(settingsPath, json);
-                _logger.Msg($"Settings saved to: {settingsPath}");
+                Log.LogInfo($"Settings saved to: {settingsPath}");
             }
             catch (Exception ex)
             {
-                _logger.Error($"Error saving settings: {ex.Message}");
+                Log.LogError($"Error saving settings: {ex.Message}");
             }
         }
 
-        private GameServerSettings CreateDefaultSettings()
+        private static GameServerSettings CreateDefaultSettings()
         {
-            return new GameServerSettings
+            return new()
             {
                 AppID = 3164500,
             };
