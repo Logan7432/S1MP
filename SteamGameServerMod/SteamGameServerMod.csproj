@@ -59,7 +59,7 @@
 		<Reference Include="$(S1Dir)\MelonLoader\net35\0Harmony.dll" Condition="'$(Configuration)'=='DebugMelon'"/>
 
 		<PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3" PrivateAssets="all" />
-		<PackageReference Include="FishNetV3.CodeGenerator.MSBuild" Version="1.0.0-beta.9" PrivateAssets="all" ExcludeAssets="runtime" />
+<!--		<PackageReference Include="FishNetV3.CodeGenerator.MSBuild" Version="1.0.0-beta.9" PrivateAssets="all" ExcludeAssets="runtime" />-->
 	</ItemGroup>
 
 	<ItemGroup>

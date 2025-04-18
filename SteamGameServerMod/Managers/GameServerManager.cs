@@ -1,8 +1,10 @@
 ﻿using System.Collections;
+using FishNet;
 using SteamGameServerMod.Callbacks;
 using SteamGameServerMod.Logging;
 using SteamGameServerMod.Settings;
 using Steamworks;
+using UnityEngine;
 
 namespace SteamGameServerMod.Managers
 {
@@ -21,59 +23,59 @@ namespace SteamGameServerMod.Managers
                 yield break;
             }
 
-            try
+            // Log Initial Configuration
+            Log.LogInfo($"Initializing server with AppID: {settings.AppID}");
+            Log.LogInfo($"Game Port: {settings.GamePort}, Query Port: {settings.QueryPort}");
+            Log.LogInfo($"Server Mode: {settings.ServerMode}");
+
+            //UInt32 serverIp = Utils.IpToUInt32("192.168.178.70");
+            var serverIp = 0u;
+
+            var success = GameServer.Init(
+                serverIp,
+                settings.QueryPort,
+                settings.GamePort,
+                settings.ServerMode,
+                "1.0.0"
+            );
+
+            if (!success)
             {
-                // Log Initial Configuration
-                Log.LogInfo($"Initializing server with AppID: {settings.AppID}");
-                Log.LogInfo($"Game Port: {settings.GamePort}, Query Port: {settings.QueryPort}");
-                Log.LogInfo($"Server Mode: {settings.ServerMode}");
-
-                //UInt32 serverIp = Utils.IpToUInt32("192.168.178.70");
-                var serverIp = 0u;
-
-                var success = GameServer.Init(
-                    serverIp,
-                    settings.QueryPort,
-                    settings.GamePort,
-                    settings.ServerMode,
-                    "1.0.0"
-                );
-
-                if (!success)
-                {
-                    Log.LogError("Failed to initialize Steam GameServer.");
-                    yield break;
-                }
-
-                // Register callbacks
-                _callbackHandler.RegisterCallbacks();
-
-                // Apply game server configuration
-                Log.LogInfo("Configuring server settings...");
-                SteamGameServer.SetModDir(settings.GameDirectory);
-                SteamGameServer.SetProduct($"{settings.AppID}");
-                SteamGameServer.SetGameDescription(settings.GameDescription);
-                SteamGameServer.SetDedicatedServer(true);
-                SteamGameServer.SetMaxPlayerCount(settings.MaxPlayers);
-                SteamGameServer.SetPasswordProtected(settings.PasswordProtected);
-                SteamGameServer.SetServerName(settings.ServerName);
-                SteamGameServer.SetMapName(settings.MapName);
-
-                Log.LogInfo("Logging on to Steam...");
-                SteamGameServer.LogOn("GAMESERVER_TOKEN");
-
-                // Communicate to Steam master server that this server is active and should be advertised on server browser
-                SteamGameServer.SetAdvertiseServerActive(true);
-
-                _serverInitialized = true;
-                Log.LogInfo("Steam GameServer initialization completed.");
-                Log.LogInfo($"Steam initialized, Steam running: {SteamAPI.IsSteamRunning()}, Server logged on: {SteamGameServer.BLoggedOn()}");
+                Log.LogError("Failed to initialize Steam GameServer.");
+                yield break;
             }
-            catch (Exception ex)
-            {
-                Log.LogError($"Exception during Steam GameServer initialization: {ex.Message}");
-                Log.LogError($"Stack trace: {ex.StackTrace}");
-            }
+
+            // Register callbacks
+            _callbackHandler.RegisterCallbacks();
+
+            // Apply game server configuration
+            Log.LogInfo("Configuring server settings...");
+            SteamGameServer.SetModDir(settings.GameDescription);
+            SteamGameServer.SetGameDescription(settings.GameDescription);
+            SteamGameServer.SetProduct($"{settings.AppID}");
+            SteamGameServer.SetDedicatedServer(true);
+            SteamGameServer.SetMaxPlayerCount(settings.MaxPlayers);
+            SteamGameServer.SetPasswordProtected(settings.PasswordProtected);
+            SteamGameServer.SetServerName(settings.ServerName);
+            SteamGameServer.SetMapName(settings.MapName);
+
+            Log.LogInfo("Logging on to Steam...");
+            SteamGameServer.LogOn("27C21D37398C7156D2B906BD43620DFA");
+
+            // Communicate to Steam master server that this server is active and should be advertised on server browser
+            SteamGameServer.SetAdvertiseServerActive(true);
+
+            yield return new WaitUntil(SteamGameServer.BLoggedOn);
+
+            // InstanceFinder.ServerManager.StartConnection();
+
+            _serverInitialized = true;
+            Log.LogInfo("Steam GameServer initialization completed.");
+            Log.LogInfo($"Steam initialized, Steam running: {SteamAPI.IsSteamRunning()}, Server logged on: {SteamGameServer.BLoggedOn()}");
+
+            // Create the lobby?
+            SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypePublic, settings.MaxPlayers);
+            Log.LogInfo("SteamMatching::CreateLobby called");
         }
 
         public void Update()

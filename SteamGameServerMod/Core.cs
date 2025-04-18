@@ -9,6 +9,7 @@ using System.Collections;
 using SteamGameServerMod.Logging;
 using SteamGameServerMod.Managers;
 using SteamGameServerMod.Settings;
+using Steamworks;
 using UnityEngine;
 
 #if USEMELONLOADER
@@ -39,6 +40,12 @@ namespace SteamGameServerMod
 #endif
 
             Log.LogInfo("Steam GameServer Mod Initializing...");
+
+            if (!SteamAPI.Init())
+            {
+                Log.LogFatal("Failed to initialize SteamAPI!!!!!!");
+                return;
+            }
 
             // Initialize settings
             _settings = new SettingsManager()
