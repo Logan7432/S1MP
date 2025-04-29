@@ -9,11 +9,14 @@ using HarmonyLib;
 using SteamGameServerMod.Logging;
 using SteamGameServerMod.Managers;
 using SteamGameServerMod.Settings;
+using SteamGameServerMod.Client;
 using Steamworks;
 using UnityEngine;
+using System;
+using System.Linq;
 
 #if USEMELONLOADER
-[assembly: MelonInfo(typeof(SteamGameServerMod.Core), "SteamGameServerMod", "1.0.0", "Red")]
+[assembly: MelonInfo(typeof(SteamGameServerMod.Core), "SteamGameServerMod", "1.0.0", "YourName")]
 [assembly: MelonColor(1,255,0,0)]
 [assembly: MelonGame("TVGS", "Schedule I")]
 #endif
@@ -27,9 +30,12 @@ namespace SteamGameServerMod
 #endif
     {
         public static bool IsHost;
+        public static bool IsRunningAsServer => ServerSettings.ServerEnabled;
 
-        GameServerSettings _settings;
-        GameServerManager _gameServer;
+        private GameServerSettings _settings;
+        private GameServerManager _gameServer;
+        private Client.ClientManager _clientManager; // Keep original name, but use full namespace
+        private ConfigManager _configManager;
 
 #if USEMELONLOADER
         public override void OnInitializeMelon()
@@ -41,42 +47,73 @@ namespace SteamGameServerMod
             Log.Logger = Logger;
 #endif
 
-            var startArguments = Environment.GetCommandLineArgs()
-                .ToList();
-            IsHost = startArguments.Contains("--host");
-            if (IsHost)
+            var startArguments = Environment.GetCommandLineArgs().ToList();
+            IsHost = startArguments.Contains("--host") || IsRunningAsServer;
+
+            Log.LogInfo("Steam Game Server Mod Initializing...");
+
+            // Initialize configuration
+            _configManager = new ConfigManager();
+            _configManager.LoadConfig();
+
+            if (!SteamAPI.Init())
             {
-                Log.LogInfo("Steam GameServer Mod Initializing...");
-
-                if (!SteamAPI.Init())
-                {
-                    Log.LogFatal("Failed to initialize SteamAPI!!!!!!");
-                    return;
-                }
-
-                // Initialize settings
-                _settings = new SettingsManager()
-                    .LoadSettings();
-
-                // Initialize game server
-                _gameServer = new(_settings);
-
-                // Register exit handler
-                Application.quitting += OnApplicationQuitHandler;
-
-                // Start initialization process
-#if USEMELONLOADER
-                MelonCoroutines.Start(_gameServer.Initialize());
-                MelonCoroutines.Start(_gameServer.InitializeServerSpawning());
-#elif USEBEPINEX
-                StartCoroutine(_gameServer.Initialize());
-                StartCoroutine(_gameServer.InitializeServerSpawning());
-#endif
+                Log.LogFatal("Failed to initialize SteamAPI!!!!!!");
+                return;
             }
+
+            if (IsRunningAsServer)
+            {
+                // Initialize server mode
+                InitializeServerMode();
+            }
+            else
+            {
+                // Initialize client mode
+                InitializeClientMode();
+            }
+
+            // Register exit handler
+            Application.quitting += OnApplicationQuitHandler;
 
 #if USEBEPINEX
             new Harmony($"com.S1MP.{MyPluginInfo.PLUGIN_GUID}")
                 .PatchAll();
+#endif
+        }
+
+        private void InitializeServerMode()
+        {
+            Log.LogInfo("Initializing in Server Mode");
+
+            // Initialize settings
+            _settings = new SettingsManager()
+                .LoadSettings();
+
+            // Initialize game server
+            _gameServer = new(_settings);
+
+            // Start initialization process
+#if USEMELONLOADER
+            MelonCoroutines.Start(_gameServer.Initialize());
+            MelonCoroutines.Start(_gameServer.InitializeServerSpawning());
+#elif USEBEPINEX
+            StartCoroutine(_gameServer.Initialize());
+            StartCoroutine(_gameServer.InitializeServerSpawning());
+#endif
+        }
+
+        private void InitializeClientMode()
+        {
+            Log.LogInfo("Initializing in Client Mode");
+
+            // Initialize client manager
+            _clientManager = new Client.ClientManager();
+
+#if USEMELONLOADER
+            MelonCoroutines.Start(_clientManager.Initialize());
+#elif USEBEPINEX
+            StartCoroutine(_clientManager.Initialize());
 #endif
         }
 
@@ -86,7 +123,14 @@ namespace SteamGameServerMod
         void Update()
 #endif
         {
-            _gameServer?.Update();
+            if (IsRunningAsServer)
+            {
+                _gameServer?.Update();
+            }
+            else
+            {
+                _clientManager?.Update();
+            }
         }
 
         void OnApplicationQuitHandler()
@@ -105,7 +149,14 @@ namespace SteamGameServerMod
 
         void ShutdownServer()
         {
-            _gameServer?.Shutdown();
+            if (IsRunningAsServer)
+            {
+                _gameServer?.Shutdown();
+            }
+            else
+            {
+                _clientManager?.Shutdown();
+            }
         }
     }
 }

@@ -1,26 +1,38 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35919.96 d17.13
+VisualStudioVersion = 17.13.35919.96
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SteamGameServerMod", "SteamGameServerMod\SteamGameServerMod.csproj", "{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		ReleaseMelon|Any CPU = ReleaseMelon|Any CPU
 		DebugBepInEx|Any CPU = DebugBepInEx|Any CPU
+		DebugBepInEx|x64 = DebugBepInEx|x64
 		DebugMelon|Any CPU = DebugMelon|Any CPU
+		DebugMelon|x64 = DebugMelon|x64
 		ReleaseBepInEx|Any CPU = ReleaseBepInEx|Any CPU
+		ReleaseBepInEx|x64 = ReleaseBepInEx|x64
+		ReleaseMelon|Any CPU = ReleaseMelon|Any CPU
+		ReleaseMelon|x64 = ReleaseMelon|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.ReleaseMelon|Any CPU.ActiveCfg = ReleaseMelon|Any CPU
-		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.ReleaseMelon|Any CPU.Build.0 = ReleaseMelon|Any CPU
 		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.DebugBepInEx|Any CPU.ActiveCfg = DebugBepInEx|Any CPU
 		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.DebugBepInEx|Any CPU.Build.0 = DebugBepInEx|Any CPU
+		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.DebugBepInEx|x64.ActiveCfg = DebugBepInEx|x64
+		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.DebugBepInEx|x64.Build.0 = DebugBepInEx|x64
 		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.DebugMelon|Any CPU.ActiveCfg = DebugMelon|Any CPU
 		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.DebugMelon|Any CPU.Build.0 = DebugMelon|Any CPU
+		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.DebugMelon|x64.ActiveCfg = DebugMelon|x64
+		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.DebugMelon|x64.Build.0 = DebugMelon|x64
 		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.ReleaseBepInEx|Any CPU.ActiveCfg = ReleaseBepInEx|Any CPU
 		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.ReleaseBepInEx|Any CPU.Build.0 = ReleaseBepInEx|Any CPU
+		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.ReleaseBepInEx|x64.ActiveCfg = ReleaseBepInEx|x64
+		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.ReleaseBepInEx|x64.Build.0 = ReleaseBepInEx|x64
+		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.ReleaseMelon|Any CPU.ActiveCfg = ReleaseMelon|Any CPU
+		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.ReleaseMelon|Any CPU.Build.0 = ReleaseMelon|Any CPU
+		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.ReleaseMelon|x64.ActiveCfg = ReleaseMelon|x64
+		{BDF5DAA3-3AB7-4F08-81A1-97FC4901F393}.ReleaseMelon|x64.Build.0 = ReleaseMelon|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

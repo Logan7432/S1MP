@@ -1,9 +1,8 @@
 ﻿using System.Collections;
-
+using System.Net;
 using FishNet;
 using FishNet.Component.Scenes;
 using FishNet.Transporting.Multipass;
-
 using ScheduleOne.Audio;
 using ScheduleOne.Persistence;
 using ScheduleOne.PlayerScripts;
@@ -14,13 +13,20 @@ using UnityEngine.SceneManagement;
 
 using SteamGameServerMod.Logging;
 using SteamGameServerMod.Settings;
+using SteamGameServerMod.Util;
 
 namespace SteamGameServerMod.Managers
 {
-    internal class GameServerManager(GameServerSettings settings)
+    internal class GameServerManager
     {
-        bool _serverInitialized;
-        bool _lobbyGameCreated;
+        private readonly GameServerSettings _settings;
+        private bool _serverInitialized;
+        private bool _lobbyGameCreated;
+
+        public GameServerManager(GameServerSettings settings)
+        {
+            _settings = settings;
+        }
 
         /// <summary>
         /// Initializes the <see cref="GameServerManager"/> instance.
@@ -39,18 +45,23 @@ namespace SteamGameServerMod.Managers
             }
 
             // Log Initial Configuration
-            Log.LogInfo($"Initializing server with AppID: {settings.AppID}");
-            Log.LogInfo($"Game Port: {settings.GamePort}, Query Port: {settings.QueryPort}");
-            Log.LogInfo($"Server Mode: {settings.ServerMode}");
+            Log.LogInfo($"Initializing server with AppID: {_settings.AppID}");
+            Log.LogInfo($"Game Port: {_settings.GamePort}, Query Port: {_settings.QueryPort}");
+            Log.LogInfo($"Server Mode: {_settings.ServerMode}");
 
-            // var serverIp = Utils.IpToUInt32("192.168.178.70");
-            var serverIp = 0u;
+            uint serverIp = 0;
+            if (_settings.ServerIP != "0.0.0.0")
+            {
+                serverIp = Utils.IpToUInt32(_settings.ServerIP);
+                Log.LogInfo($"Using specific IP address: {_settings.ServerIP}");
+            }
+
             var success = GameServer.Init(
                 serverIp,
-                settings.QueryPort,
-                settings.GamePort,
-                settings.ServerMode,
-                "1.0.0"
+                _settings.QueryPort,
+                _settings.GamePort,
+                _settings.ServerMode,
+                _settings.GameVersion
             );
 
             if (!success)
@@ -61,17 +72,17 @@ namespace SteamGameServerMod.Managers
 
             // Apply game server configuration
             Log.LogInfo("Configuring server settings...");
-            SteamGameServer.SetModDir(settings.GameDescription);
-            SteamGameServer.SetGameDescription(settings.GameDescription);
-            SteamGameServer.SetProduct($"{settings.AppID}");
+            SteamGameServer.SetModDir(_settings.GameDescription);
+            SteamGameServer.SetGameDescription(_settings.GameDescription);
+            SteamGameServer.SetProduct($"{_settings.AppID}");
             SteamGameServer.SetDedicatedServer(true);
-            SteamGameServer.SetMaxPlayerCount(settings.MaxPlayers);
-            SteamGameServer.SetPasswordProtected(settings.PasswordProtected);
-            SteamGameServer.SetServerName(settings.ServerName);
-            SteamGameServer.SetMapName(settings.MapName);
+            SteamGameServer.SetMaxPlayerCount(_settings.MaxPlayers);
+            SteamGameServer.SetPasswordProtected(_settings.PasswordProtected);
+            SteamGameServer.SetServerName(_settings.ServerName);
+            SteamGameServer.SetMapName(_settings.MapName);
 
             Log.LogInfo("Logging on to Steam...");
-            SteamGameServer.LogOn(settings.Token);
+            SteamGameServer.LogOn(_settings.Token);
 
             yield return new WaitUntil(SteamGameServer.BLoggedOn);
 
@@ -79,7 +90,8 @@ namespace SteamGameServerMod.Managers
             Log.LogInfo("Steam GameServer initialization completed.");
             Log.LogInfo($"Steam initialized, Steam running: {SteamAPI.IsSteamRunning()}, Server logged on: {SteamGameServer.BLoggedOn()}");
 
-            SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypePublic, settings.MaxPlayers);
+            // Create Steam lobby
+            SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypePublic, _settings.MaxPlayers);
             Log.LogInfo("SteamMatching::CreateLobby called");
         }
 
@@ -121,7 +133,7 @@ namespace SteamGameServerMod.Managers
 
             Log.LogInfo("Spawn Server: Load scenes and host's player");
 
-            var saveFile = SaveGameManager.GetSave(settings.SaveGameName);
+            var saveFile = SaveGameManager.GetSave(_settings.SaveGameName);
             LoadManager.Instance.ActiveSaveInfo = saveFile;
             LoadManager.Instance.IsLoading = true;
             LoadManager.Instance.TimeSinceGameLoaded = 0;
@@ -142,7 +154,7 @@ namespace SteamGameServerMod.Managers
             var sceneLoading = SceneManager.LoadSceneAsync("Main");
             yield return new WaitUntil(() => sceneLoading!.isDone);
 
-            Log.LogInfo("Spawn Server: Main scene loaded!!!!!");
+            Log.LogInfo("Spawn Server: Main scene loaded!");
 
             LoadManager.Instance.LoadStatus = LoadManager.ELoadStatus.Initializing;
             LoadManager.Instance.onPreLoad?.Invoke();
@@ -180,6 +192,20 @@ namespace SteamGameServerMod.Managers
 
             LoadManager.Instance.IsLoading = false;
             LoadManager.Instance.IsGameLoaded = true;
+
+            // Register heartbeat to master server if enabled
+            if (_settings.RegisterToMasterServer)
+            {
+                StartHeartbeat();
+            }
+        }
+
+        private void StartHeartbeat()
+        {
+            Log.LogInfo("Starting heartbeat to master server...");
+
+            // Implement server heartbeat functionality
+            // This could send regular updates to a master server
         }
 
         static IEnumerator LoadSave(SaveInfo saveInfo)
@@ -218,22 +244,6 @@ namespace SteamGameServerMod.Managers
 
         void RegisterCallbacks()
         {
-            // // Register server callbacks
-            // Callback<SteamServersConnected_t>.Create(OnSteamServersConnected);
-            // Callback<SteamServerConnectFailure_t>.Create(OnSteamServerConnectFailure);
-            // Callback<SteamServersDisconnected_t>.Create(OnSteamServersDisconnected);
-            //
-            // // Register client callbacks
-            // Callback<P2PSessionRequest_t>.Create(OnP2PSessionRequest);
-            // Callback<GSClientApprove_t>.Create(OnClientApproved);
-            // Callback<GSClientDeny_t>.Create(OnClientDenied);
-            // Callback<GSClientKick_t>.Create(OnClientKicked);
-            //
-            // // Register debug callbacks
-            // Callback<ValidateAuthTicketResponse_t>.Create(OnValidateAuthTicket);
-            // Callback<P2PSessionConnectFail_t>.Create(OnP2PConnectFail);
-            // Callback<GameServerChangeRequested_t>.Create(OnGameServerChangeRequested);
-
             Callback<LobbyChatUpdate_t>.Create(lobbyChatUpdate =>
             {
                 var stateChange = (EChatMemberStateChange)lobbyChatUpdate.m_rgfChatMemberStateChange;
@@ -244,10 +254,12 @@ namespace SteamGameServerMod.Managers
             {
                 Log.LogInfo($"Lobby created: {lobbyCreated.m_eResult} {lobbyCreated.m_ulSteamIDLobby}");
 
-                SteamMatchmaking.SetLobbyGameServer((CSteamID)lobbyCreated.m_ulSteamIDLobby, 0, settings.GamePort, CSteamID.Nil);
+                SteamMatchmaking.SetLobbyGameServer((CSteamID)lobbyCreated.m_ulSteamIDLobby, 0, _settings.GamePort, CSteamID.Nil);
 
-                SteamMatchmaking.SetLobbyData((CSteamID)lobbyCreated.m_ulSteamIDLobby, "version", settings.GameVersion);
+                SteamMatchmaking.SetLobbyData((CSteamID)lobbyCreated.m_ulSteamIDLobby, "version", _settings.GameVersion);
                 SteamMatchmaking.SetLobbyData((CSteamID)lobbyCreated.m_ulSteamIDLobby, "ready", "true");
+                SteamMatchmaking.SetLobbyData((CSteamID)lobbyCreated.m_ulSteamIDLobby, "name", _settings.ServerName);
+                SteamMatchmaking.SetLobbyData((CSteamID)lobbyCreated.m_ulSteamIDLobby, "maxplayers", _settings.MaxPlayers.ToString());
 
                 // Communicate to Steam master server that this server is active and should be advertised on server browser
                 SteamGameServer.SetAdvertiseServerActive(true);
